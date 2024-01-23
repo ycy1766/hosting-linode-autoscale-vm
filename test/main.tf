@@ -25,13 +25,13 @@ provider "linode" {
 }
 
 resource "linode_firewall" "firewall" {
-  label           = "CLOUDSVC_fw"
+  label           = "CLOUDSVC-cy_fw"
   inbound_policy  = "ACCEPT"
   outbound_policy = "ACCEPT"
 }
 
 resource "linode_stackscript" "install_nginx" {
-  label       = "CLOUDSVC_test_nginx"
+  label       = "CLOUDSVC-cy_test_nginx"
   description = "Installs a Package"
   script      = <<EOF
 #!/bin/bash
@@ -76,14 +76,14 @@ EOF
 
 resource "linode_instance" "web" {
   count          = var.instance_count
-  label          = "CLOUDSVC-web-${count.index + 1}"
+  label          = "CLOUDSVC-cy-web-${count.index + 1}"
   image          = "linode/rocky9"
   region         = "jp-osa"
   type           = "g6-standard-1"
   root_pass      = "Terraform!@34"
   private_ip     = true
-  group          = "CLOUDSVC"
-  tags           = ["CLOUDSVC"]
+  group          = "CLOUDSVC-cy"
+  tags           = ["CLOUDSVC-cy"]
   stackscript_id = linode_stackscript.install_nginx.id
 }
 
@@ -94,7 +94,7 @@ resource "linode_firewall_device" "firewall_device" {
 }
 
 resource "linode_nodebalancer" "foobar" {
-  label                = "CLOUDSVC-LB"
+  label                = "CLOUDSVC-cy-LB"
   region               = "jp-osa"
   client_conn_throttle = 20
 }
@@ -116,6 +116,6 @@ resource "linode_nodebalancer_node" "foonode" {
   nodebalancer_id = linode_nodebalancer.foobar.id
   config_id       = linode_nodebalancer_config.foofig.id
   address         = "${element(linode_instance.web.*.private_ip_address, count.index)}:80"
-  label           = "CLOUDSVC-LB-Node"
+  label           = "CLOUDSVC-cy-LB-Node"
   weight          = 50
 }
