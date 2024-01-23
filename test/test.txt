@@ -3,14 +3,15 @@ pipeline {
     agent any
     environment {
         AWS_SECRET_ACCESS_KEY = credentials('linode_s3_secret')
+        LINODE_TOKEN= credentials('linode_api_token')
     }
     parameters {
         string(name: 'NODE_STATUS', defaultValue: 'default_value', description: 'Linode status ')
     }
     stages {
-        stage('Build') {
+        stage('Clone repository') {
             steps {
-                echo 'Building...'
+                git branch: 'main', url: 'https://github.com/ycy1766/hosting-linode-autoscale-vm.git'
             }
         }
 
@@ -19,12 +20,18 @@ pipeline {
                 script {
                     if (params.NODE_STATUS == 'fire') {
                         echo '축소'  
-                        sh 'echo  $AWS_SECRET_ACCESS_KEY'
+                        sh 'echo  $AWS_SECRET_ACCESS_KEY >> 1.txt'
+                        sh 'export AWS_ACCESS_KEY_ID=H9DCL1EOFNWGUB9HFOL3'
                         sh 'terraform version'
+                        sh 'cd test && terraform init'
+                        sh 'ls '
                     } else if (params.NODE_STATUS == 'resolve') {
                         echo '증가'    
-                        sh 'echo  $AWS_SECRET_ACCESS_KEY'
+                        sh 'echo  $AWS_SECRET_ACCESS_KEY >> 1.txt'
+                        sh 'export AWS_ACCESS_KEY_ID=H9DCL1EOFNWGUB9HFOL3'
                         sh 'terraform version'
+                        sh 'cd test && terraform init'
+                        sh 'ls '
                     } else {
                         echo "Unknown environment: ${params.NODE_STATUS}"
                     }
