@@ -1,0 +1,50 @@
+
+pipeline {
+    agent any
+    environment {
+        AWS_SECRET_ACCESS_KEY = credentials('linode_s3_secret')
+        AWS_ACCESS_KEY_ID = credentials('linode_s3_access')
+        LINODE_TOKEN= credentials('linode_api_token')
+    }
+    parameters {
+        string(name: 'NODE_STATUS', defaultValue: 'default_value', description: 'Linode status ')
+    }
+    stages {
+        stage('Clone repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/ycy1766/hosting-linode-autoscale-vm.git'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    if (params.NODE_STATUS == 'resolve') {
+                        echo '축소'  
+                        sh 'echo  "variable \\"linode_token\\" { default = \\"$LINODE_TOKEN\\" }" >> test/variables.tf'
+                        sh 'cd test && terraform init -reconfigure && terraform apply -auto-approve -var="instance_count=2" '
+                    } else if (params.NODE_STATUS == 'fire') {
+                        echo '증가'    
+                        sh 'echo  "variable \\"linode_token\\" { default = \\"$LINODE_TOKEN\\" }" >> test/variables.tf'
+                        sh 'cd test && terraform init -reconfigure && terraform apply -auto-approve -var="instance_count=3" '
+                    } else if (params.NODE_STATUS == 'destroy') {
+                        echo '삭제'    
+                        sh 'echo  "variable \\"linode_token\\" { default = \\"$LINODE_TOKEN\\" }" >> test/variables.tf'
+                        sh 'cd test && terraform init -reconfigure && terraform destroy -auto-approve '                    
+                    } else if (params.NODE_STATUS == 'deploy') {
+                        echo '배포'    
+                        sh 'echo  "variable \\"linode_token\\" { default = \\"$LINODE_TOKEN\\" }" >> test/variables.tf'
+                        sh 'cd test && terraform init -reconfigure && terraform destroy -auto-approve -var="instance_count=2" '                    
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+curl  -X POST http://172.233.80.84:8080/job/cyyoon-test-pipeline/buildWithParameters?NODE_STATUS=fire   --user sjoh02:11d5272ab4061910445c5448b845d557f1    
+
+curl   -X POST http://172.233.80.84:8080/job/cyyoon-test-pipeline/buildWithParameters?NODE_STATUS=resolve  --user sjoh02:11d5272ab4061910445c5448b845d557f1
+&AWS_SECRET_ACCESS_KEY=TJxEdw3InidBH9hBBxoowzZZ6zrSQxKFhKM3waph&AWS_ACCESS_KEY_ID=H9DCL1EOFNWGUB9HFOL3 --user sjoh02:11d5272ab4061910445c5448b845d557f1  
