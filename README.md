@@ -6,3 +6,4 @@ Prometheus 로 수집된 Metric 임계치 상승 시 prometheus-am-executor 의�
 - [reference-architecture](https://www.linode.com/docs/reference-architecture/auto-scaling-prometheus/)
 
 
+
